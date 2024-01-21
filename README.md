@@ -38,3 +38,10 @@ The code can he found [here](nrf52840-mdk).
 ## sniffer
 
 To debug the comminications I've written an small ESB sniffer. [See here](sniffer).
+
+## Prerequisites
+
+- [nRF52840 MDK board](https://wiki.makerdiary.com/nrf52840-mdk-usb-dongle)
+- [Rust](https://www.rust-lang.org/tools/install)
+- add the target thumbv7em-none-eabihf `rustup target add thumbv7em-none-eabihf`
+- To drag and drop the compiled code using [UF2 Bootloader](https://wiki.makerdiary.com/nrf52840-mdk-usb-dongle/programming/uf2boot/) you will need [uf2utils](https://wiki.makerdiary.com/nrf52840-mdk-usb-dongle/programming/uf2boot/#installing-uf2-converter)
