@@ -32,6 +32,9 @@ pub enum Error {
   /// wait_rx called without a successful start_rx was called before
   ReceiveNotStarted,
 
+  /// after a wait_rx | wait_tx a timeout happended
+  TimeOutOnWait,
+
   /// Unexpected error from the radio
   RadioError(RadioError),
 }
@@ -144,6 +147,7 @@ pub struct Esb<'a, LFOSC, LFSTAT> {
   tx_buffer: Option<&'a mut [u8]>,
   rx_packet: Option<RxPacket>,
   tx_packet: Option<TxPacket>,
+  start_timeout: Option<u8>
 }
 
 impl<'a, LFOSC, LFSTAT> Esb<'a, LFOSC, LFSTAT> {
@@ -163,6 +167,7 @@ impl<'a, LFOSC, LFSTAT> Esb<'a, LFOSC, LFSTAT> {
       tx_buffer: Some(write_buffer),
       rx_packet: None,
       tx_packet: None,
+      start_timeout: None,
     }
   }
 
