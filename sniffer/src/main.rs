@@ -39,9 +39,15 @@ use nrf52840_mdk::{leds_welcome, Board};
 
 const LED_INTERVAL: u32 = 1_000_000;
 
+const MAX_CHANNEL: u8 = 100;
+const RX_RETRIES: usize = 100_000;
+
 
 #[entry]
 fn main() -> ! {
+
+    let mut channel = 0;
+
     let mut board = Board::take().unwrap();
 
     _ = board.uart_daplink.write_str("Initialising ...\n");
@@ -56,7 +62,7 @@ fn main() -> ! {
     radio
         .set_tx_power(TxPower::Pos8dBm)
         .set_mode(Mode::Nrf2Mbit) // All points that most HID devices use this rate
-        .set_frequency(Frequency::from_2400mhz_channel(78))
+        .set_frequency(Frequency::from_2400mhz_channel(channel)) // Original 78
         .set_base_addresses(BaseAddresses::from_same_four_bytes([0xa0, 0xb1, 0xc2, 0xd3]))
         .set_prefixes([0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7])
         .set_rx_addresses(RX_ADDRESS_ALL)
@@ -69,12 +75,14 @@ fn main() -> ! {
     let mut esb = Esb::new(radio, EsbProtocol::fixed_payload_length(32), &mut read_buffer, &mut write_buffer);
     esb.set_crc_16bits();
 
-    let rx_config = RxConfig::default().with_skip_ack(true);
+    let rx_config = RxConfig::default().with_skip_ack(true).with_retries(RX_RETRIES);
 
     _ = board.uart_daplink.write_str("Starting ...\n");
 
     board.leds.green.on();
     board.leds.blue.off();
+    board.leds.red.off();
+
     timer.start(LED_INTERVAL);
     loop {
         
@@ -87,22 +95,35 @@ fn main() -> ! {
             
             board.leds.green.on();
             board.leds.red.off();
-            _ = board.uart_daplink.write_str("Waiting for RX: ");
+            _ = board.uart_daplink.write_fmt(format_args!("Waiting for RX in channel {:?}: ", channel));
             if let Err(error) = block!(esb.wait_rx()) {
                 board.leds.green.off();
                 board.leds.red.on();
                 _ = board.uart_daplink.write_fmt(format_args!("Error: {:?}\n", error));
             }
-            // if let Err(error) = esb.wait_rx() {
-            //     board.leds.green.off();
-            //     board.leds.red.on();
-            //     _ = board.uart_daplink.write_fmt(format_args!("Error: {:?}\n", error));
-            // }
+
             else {
-                board.leds.blue.invert();
-                let packet = esb.get_last_received_packet().unwrap();
-                let buf = esb.get_rx_buffer();
-                print_packet(&packet, buf, &mut board.uart_daplink);
+                match esb.get_last_received_packet(){
+                    Some(packet) => {
+                        board.leds.blue.invert();
+                        board.leds.red.off();
+                        let buf = esb.get_rx_buffer();
+                        print_packet(&packet, buf, &mut board.uart_daplink);
+                    },
+                    None => {
+                        _ = board.uart_daplink.write_str("Packet reception retries exceded. Will try in the next channel!\n\r");
+                        
+                        // TODO: set the channel to the next one to s
+                        channel = if channel >= MAX_CHANNEL{
+                            0
+                        }else{
+                            channel + 1
+                        };
+                        esb.set_radio_frequency(Frequency::from_2400mhz_channel(78));
+                        board.leds.red.invert();
+                    },
+                }
+                 
             }
         }
 
