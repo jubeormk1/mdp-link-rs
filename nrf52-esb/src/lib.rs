@@ -213,7 +213,9 @@ impl<'a, LFOSC, LFSTAT> Esb<'a, LFOSC, LFSTAT> {
   }
 
   pub fn set_radio_frequency(&self, freq: Frequency) -> &Self {
+    self.radio.disable();
     self.radio.set_frequency(freq);
+    self.radio.enable_power();
     self
   }
 
