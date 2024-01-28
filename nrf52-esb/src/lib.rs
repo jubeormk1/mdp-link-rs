@@ -142,6 +142,7 @@ enum State {
   Disable,
   /// Unexpected error
   Error,
+
 }
 
 // TODO save the start timestamp for waiting states, and consider timeouts
@@ -153,6 +154,7 @@ pub struct Esb<'a, LFOSC, LFSTAT> {
   tx_buffer: Option<&'a mut [u8]>,
   rx_packet: Option<RxPacket>,
   tx_packet: Option<TxPacket>,
+  retry_count_down: Option<usize>
 }
 
 impl<'a, LFOSC, LFSTAT> Esb<'a, LFOSC, LFSTAT> {
@@ -172,6 +174,7 @@ impl<'a, LFOSC, LFSTAT> Esb<'a, LFOSC, LFSTAT> {
       tx_buffer: Some(write_buffer),
       rx_packet: None,
       tx_packet: None,
+      retry_count_down: None,
     }
   }
 
@@ -320,7 +323,9 @@ impl<'a, LFOSC, LFSTAT> Esb<'a, LFOSC, LFSTAT> {
                 };
                 if config.skip_ack || packet.no_ack {
                   self.rx_packet = Some(packet);
-                  self.tx_buffer = self.radio.swap_buffer(None);
+                  // self.tx_buffer = self.radio.swap_buffer(None); // Was this a Bug? Replaced with:
+                  self.rx_buffer = self.radio.swap_buffer(None);
+                  // end of replace
                   self.disable()
                 }
                 else {
@@ -331,7 +336,18 @@ impl<'a, LFOSC, LFSTAT> Esb<'a, LFOSC, LFSTAT> {
                 self.next_state(State::Rx(config, self.rx_step_from_radio_state()))
               }
             },
-            Err(error) => self.handle_async_radio_error(error),
+            Err(error) => {
+              
+              if self.retry_count_finished(config) {
+
+                self.rx_buffer = self.radio.swap_buffer(None);
+                self.rx_packet = None;
+                self.disable()
+
+              }else{
+                self.handle_async_radio_error(error)
+              }
+            },
           }
         };
         self.state = next_state;
@@ -385,6 +401,32 @@ impl<'a, LFOSC, LFSTAT> Esb<'a, LFOSC, LFSTAT> {
       _ => Err(nb::Error::Other(Error::ReceiveNotStarted)),
     }
   }
+
+fn retry_count_finished(&mut self, config: RxConfig) -> bool {
+    if let Retries::Retry(total_retries) = config.retries{
+      
+      match self.retry_count_down.take() {
+        Some(mut retries_left) => {
+          if retries_left == 0 {
+            
+            true
+          }else{
+            retries_left -=1;
+            self.retry_count_down.replace(retries_left);
+            false
+          }
+        },
+        None => {
+          self.retry_count_down.replace(total_retries);
+          false
+        },
+      }
+
+    } else {
+      false
+    }
+    
+}
 
   pub fn start_tx(&mut self, tx_config: TxConfig) -> Result<()> {
     match self.state {
