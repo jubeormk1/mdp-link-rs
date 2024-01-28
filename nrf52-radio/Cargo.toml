@@ -5,13 +5,16 @@ authors = ["Christian Perez Llamas"]
 edition = "2018"
 
 [dependencies]
-cortex-m = "0.6.1"
-embedded-hal = "0.2.3"
-nrf52840-hal = "0.8.1"
-nb = "0.1.2"
-bitflags = "1.2.1"
+cortex-m = "0.7.7"
+cortex-m-rt = "0.7"
+panic-halt = "0.2"
+nb = "1.1"
 
-cortex-m-semihosting = "0.3.5"
+bitflags = "2.4.2"
+
+cortex-m-semihosting = "0.5.0"
+
+nrf52840-hal = "0.16.0"
 
 #[features]
 #rt = ["nrf52840-hal/rt"]

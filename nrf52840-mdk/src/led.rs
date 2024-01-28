@@ -9,6 +9,7 @@ use nrf52840_hal::{
 };
 
 use embedded_hal::digital::v1::StatefulOutputPin;
+// use embedded_hal::digital::StatefulOutputPin;
 
 /// The LEDs on the nRF52840-MDK board
 pub struct Leds {

@@ -7,7 +7,7 @@ use crate::led::{Led, Leds};
 use crate::button::Button;
 
 use crate::hal::{
-  prelude::*,
+  // prelude::*,
   gpio::{
     p0,
     Pin,
