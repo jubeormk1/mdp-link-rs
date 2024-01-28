@@ -55,42 +55,49 @@ fn main() -> ! {
     let radio = Radio::new(board.RADIO, &clocks);
     radio
         .set_tx_power(TxPower::Pos8dBm)
-        .set_mode(Mode::Nrf2Mbit)
+        .set_mode(Mode::Nrf2Mbit) // All points that most HID devices use this rate
         .set_frequency(Frequency::from_2400mhz_channel(78))
         .set_base_addresses(BaseAddresses::from_same_four_bytes([0xa0, 0xb1, 0xc2, 0xd3]))
         .set_prefixes([0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7])
         .set_rx_addresses(RX_ADDRESS_ALL)
         .enable_power();
 
-    let mut buffer1 = [0x00u8; 34];
-    let mut buffer2 = [0x00u8; 34];
+    let mut read_buffer = [0x00u8; 34];
+    let mut write_buffer = [0x00u8; 34];
 
     // TODO EsbProtocol and buffers size must match
-    let mut esb = Esb::new(radio, EsbProtocol::fixed_payload_length(32), &mut buffer1, &mut buffer2);
+    let mut esb = Esb::new(radio, EsbProtocol::fixed_payload_length(32), &mut read_buffer, &mut write_buffer);
     esb.set_crc_16bits();
 
     let rx_config = RxConfig::default().with_skip_ack(true);
 
-    drop(board.uart_daplink.write_str("Starting ...\n"));
+    _ = board.uart_daplink.write_str("Starting ...\n");
 
     board.leds.green.on();
     board.leds.blue.off();
     timer.start(LED_INTERVAL);
-
     loop {
+        
         if let Err(error) = esb.start_rx(rx_config) {
             board.leds.green.off();
             board.leds.red.on();
-            drop(board.uart_daplink.write_fmt(format_args!("Error: {:?}\n", error)));
+            _ = board.uart_daplink.write_fmt(format_args!("Error: {:?}\n", error));
         }
         else {
+            
             board.leds.green.on();
             board.leds.red.off();
+            _ = board.uart_daplink.write_str("Waiting for RX: ");
             if let Err(error) = block!(esb.wait_rx()) {
                 board.leds.green.off();
                 board.leds.red.on();
-                drop(board.uart_daplink.write_fmt(format_args!("Error: {:?}\n", error)));
+                _ = board.uart_daplink.write_fmt(format_args!("Error: {:?}\n", error));
             }
+            // if let Err(error) = esb.wait_rx() {
+            //     board.leds.green.off();
+            //     board.leds.red.on();
+            //     _ = board.uart_daplink.write_fmt(format_args!("Error: {:?}\n", error));
+            // }
             else {
                 board.leds.blue.invert();
                 let packet = esb.get_last_received_packet().unwrap();
