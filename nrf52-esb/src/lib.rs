@@ -4,6 +4,7 @@ pub mod protocol;
 
 // use cortex_m_semihosting::hprintln;
 
+use nrf52_radio::frequency::Frequency;
 use nrf52_radio::Radio;
 use nrf52_radio::{Result as RadioResult, AsyncResult as RadioAsyncResult};
 use nrf52_radio::Error as RadioError;
@@ -209,6 +210,11 @@ impl<'a, LFOSC, LFSTAT> Esb<'a, LFOSC, LFSTAT> {
       }
     };
     radio.set_packet_config(pcfn);
+  }
+
+  pub fn set_radio_frequency(&self, freq: Frequency) -> &Self {
+    self.radio.set_frequency(freq);
+    self
   }
 
   pub fn set_crc_disabled(&self) -> &Self {
