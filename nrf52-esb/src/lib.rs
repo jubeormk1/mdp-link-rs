@@ -33,23 +33,29 @@ pub enum Error {
   ReceiveNotStarted,
 
   /// after a wait_rx | wait_tx a timeout happended
-  TimeOutOnWait,
+  RetriesExcedded,
 
   /// Unexpected error from the radio
   RadioError(RadioError),
 }
 
 #[derive(Debug, Clone, Copy)]
+pub enum Retries {
+  Forever,
+  Retry(usize)
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct RxConfig {
   skip_ack: bool,
-  retries: usize,
+  retries: Retries,
 }
 
 impl Default for RxConfig {
   fn default() -> Self {
     RxConfig {
       skip_ack: false,
-      retries: 1,
+      retries: Retries::Forever, // retries forever
     }
   }
 }
@@ -60,7 +66,7 @@ impl RxConfig {
   }
 
   pub fn with_retries(self, retries: usize) -> Self {
-    RxConfig { retries, .. self }
+    RxConfig { retries: Retries::Retry(retries), .. self }
   }
 }
 
@@ -69,7 +75,7 @@ impl RxConfig {
 pub struct TxConfig {
   address: LogicalAddress,
   skip_ack: bool,
-  retries: usize,
+  retries: Retries,
 }
 
 impl Default for TxConfig {
@@ -77,7 +83,7 @@ impl Default for TxConfig {
     TxConfig {
       address: LogicalAddress::Of0,
       skip_ack: false,
-      retries: 1,
+      retries: Retries::Forever, 
     }
   }
 }
@@ -92,7 +98,7 @@ impl TxConfig {
   }
 
   pub fn with_retries(self, retries: usize) -> Self {
-    TxConfig { retries, .. self }
+    TxConfig { retries: Retries::Retry(retries), .. self }
   }
 }
 
@@ -147,7 +153,6 @@ pub struct Esb<'a, LFOSC, LFSTAT> {
   tx_buffer: Option<&'a mut [u8]>,
   rx_packet: Option<RxPacket>,
   tx_packet: Option<TxPacket>,
-  start_timeout: Option<u8>
 }
 
 impl<'a, LFOSC, LFSTAT> Esb<'a, LFOSC, LFSTAT> {
@@ -167,7 +172,6 @@ impl<'a, LFOSC, LFSTAT> Esb<'a, LFOSC, LFSTAT> {
       tx_buffer: Some(write_buffer),
       rx_packet: None,
       tx_packet: None,
-      start_timeout: None,
     }
   }
 
@@ -260,7 +264,13 @@ impl<'a, LFOSC, LFSTAT> Esb<'a, LFOSC, LFSTAT> {
   pub fn wait_rx(&mut self) -> AsyncResult<()> {
     match self.state {
       State::Rx(config, ref step) => {
-        // TODO check timeout
+        // TODO check timeout:
+        /* 
+        Since I do not want to find out how to do a timestamp I want to use the provided field 
+        and retry forever or a maximum number of times. 
+
+        The question is: Where should I conclude the checks?
+        */
 
         let (next_state, result) = match step {
           Step::Disable => {
