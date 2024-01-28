@@ -7,7 +7,7 @@ use cortex_m_rt::entry;
 //use panic_halt;
 use panic_semihosting as _;
 
-use cortex_m_semihosting::{dbg, hprintln, heprintln};
+// use cortex_m_semihosting::{dbg, hprintln, heprintln};
 
 use core::fmt::Write;
 

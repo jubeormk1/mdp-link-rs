@@ -44,7 +44,7 @@ const LED_INTERVAL: u32 = 1_000_000;
 fn main() -> ! {
     let mut board = Board::take().unwrap();
 
-    drop(board.uart_daplink.write_str("Initialising ...\n"));
+    _ = board.uart_daplink.write_str("Initialising ...\n");
 
     let mut timer = board.TIMER0.constrain();
 
@@ -117,15 +117,15 @@ fn print_packet(packet: &RxPacket, buf: &[u8], uarte: &mut Uarte<UARTE0>) {
     let header = ((buf[0] as u16) << 8) | (buf[1] as u16);
     let buf = &buf[2..];
     let no_ack = if packet.no_ack { 1 } else { 0 };
-    drop(uarte.write_fmt(format_args!("[{} {:02} {} {} {:016b}] ",
+    _ = uarte.write_fmt(format_args!("[{} {:02} {} {} {:016b}] ",
                                            packet.address.value(),
                                            packet.length,
                                            packet.pid,
                                            no_ack,
-                                           header)));
+                                           header));
     for b in buf.iter() {
         // TODO optimize
-        drop(uarte.write_fmt(format_args!("{:02x} ", *b)));
+        _ = uarte.write_fmt(format_args!("{:02x} ", *b));
     }
-    drop(uarte.write_char('\n'));
+    _ = uarte.write_char('\n');
 }

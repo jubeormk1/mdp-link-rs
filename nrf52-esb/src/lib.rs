@@ -2,7 +2,7 @@
 
 pub mod protocol;
 
-use cortex_m_semihosting::hprintln;
+// use cortex_m_semihosting::hprintln;
 
 use nrf52_radio::Radio;
 use nrf52_radio::{Result as RadioResult, AsyncResult as RadioAsyncResult};
@@ -517,7 +517,7 @@ impl<'a, LFOSC, LFSTAT> Esb<'a, LFOSC, LFSTAT> {
     }
   }
 
-  fn set_tx_buffer(&mut self) {
+  fn _set_tx_buffer(&mut self) {
     if self.tx_buffer.is_some() {
       drop(self.radio.swap_buffer(self.tx_buffer.take()));
     }
