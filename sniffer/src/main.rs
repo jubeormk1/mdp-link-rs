@@ -94,19 +94,18 @@ fn main() -> ! {
         else {
             
             board.leds.green.on();
-            board.leds.red.off();
-            _ = board.uart_daplink.write_fmt(format_args!("Waiting for RX in channel {:?}: ", channel));
+            // board.leds.red.off();
+            _ = board.uart_daplink.write_fmt(format_args!("Waiting for RX in channel {:3?}: ", channel));
             if let Err(error) = block!(esb.wait_rx()) {
                 board.leds.green.off();
                 board.leds.red.on();
                 _ = board.uart_daplink.write_fmt(format_args!("Error: {:?}\n", error));
             }
-
             else {
                 match esb.get_last_received_packet(){
                     Some(packet) => {
                         board.leds.blue.invert();
-                        board.leds.red.off();
+                        // board.leds.red.off();
                         let buf = esb.get_rx_buffer();
                         print_packet(&packet, buf, &mut board.uart_daplink);
                     },
@@ -123,7 +122,6 @@ fn main() -> ! {
                         board.leds.red.invert();
                     },
                 }
-                 
             }
         }
 
