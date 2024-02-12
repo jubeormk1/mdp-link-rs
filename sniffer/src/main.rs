@@ -94,7 +94,6 @@ fn main() -> ! {
         else {
             
             board.leds.green.on();
-            // board.leds.red.off();
             _ = board.uart_daplink.write_fmt(format_args!("Waiting for RX in channel {:3?}: ", channel));
             if let Err(error) = block!(esb.wait_rx()) {
                 board.leds.green.off();
@@ -105,20 +104,18 @@ fn main() -> ! {
                 match esb.get_last_received_packet(){
                     Some(packet) => {
                         board.leds.blue.invert();
-                        // board.leds.red.off();
                         let buf = esb.get_rx_buffer();
                         print_packet(&packet, buf, &mut board.uart_daplink);
                     },
                     None => {
-                        _ = board.uart_daplink.write_str("Packet reception retries exceded. Will try in the next channel!\n\r");
+                        _ = board.uart_daplink.write_fmt(format_args!("Packet reception retries exceded in channel {}. Will try in the next channel!\n\r", channel));
                         
-                        // TODO: set the channel to the next one to s
                         channel = if channel >= MAX_CHANNEL{
                             0
                         }else{
                             channel + 1
                         };
-                        esb.set_radio_frequency(Frequency::from_2400mhz_channel(78));
+                        esb.set_radio_frequency(Frequency::from_2400mhz_channel(channel));
                         board.leds.red.invert();
                     },
                 }
