@@ -114,9 +114,9 @@ fn main() -> ! {
                 match esb.get_last_received_packet(){
                     Some(packet) => {
                         board.leds.blue.on();
+                        _ = board.uart_daplink.write_str("Packet Found! Will block here\n\r");
                         let buf = esb.get_rx_buffer();
                         print_packet(&packet, buf, &mut board.uart_daplink);
-                        _ = board.uart_daplink.write_str("Found! Will block here\n\r");
                         loop {
 
                         }
