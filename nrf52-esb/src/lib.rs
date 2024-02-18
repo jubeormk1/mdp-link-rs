@@ -43,7 +43,7 @@ pub enum Error {
 #[derive(Debug, Clone, Copy)]
 pub enum Retries {
   Forever,
-  Retry(usize)
+  Retry(u32)
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -66,7 +66,7 @@ impl RxConfig {
     RxConfig { skip_ack, .. self }
   }
 
-  pub fn with_retries(self, retries: usize) -> Self {
+  pub fn with_retries(self, retries: u32) -> Self {
     RxConfig { retries: Retries::Retry(retries), .. self }
   }
 }
@@ -98,7 +98,7 @@ impl TxConfig {
     TxConfig { skip_ack, .. self }
   }
 
-  pub fn with_retries(self, retries: usize) -> Self {
+  pub fn with_retries(self, retries: u32) -> Self {
     TxConfig { retries: Retries::Retry(retries), .. self }
   }
 }
@@ -155,7 +155,7 @@ pub struct Esb<'a, LFOSC, LFSTAT> {
   tx_buffer: Option<&'a mut [u8]>,
   rx_packet: Option<RxPacket>,
   tx_packet: Option<TxPacket>,
-  retry_count_down: Option<usize>
+  retry_count_down: Option<u32>
 }
 
 impl<'a, LFOSC, LFSTAT> Esb<'a, LFOSC, LFSTAT> {
