@@ -83,5 +83,7 @@ modules.xml
 
 
 # End of https://www.gitignore.io/api/intellij+all
-sniffer/sniffer.hex
-sniffer/sniffer.uf2
+
+# Removing compiled files
+*.hex
+*.uf2
