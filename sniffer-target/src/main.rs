@@ -37,10 +37,10 @@ use nrf52_esb::{Esb, RxConfig, TxConfig, RxPacket};
 use nrf52_esb::protocol::Protocol as EsbProtocol;
 use nrf52840_mdk::{leds_welcome, Board};
 
-const LED_INTERVAL: u32 = 1_000_000;
+const LED_INTERVAL: u32 = 1_000_000; // us
 
 // P905 responds the request from M01
-const PAIRING_RESPONSE: [u8; 34] = [51, 0,
+const PACKET_PAYLOAD: [u8; 34] = [51, 0,
   0x09, 0x0d, 0x62, 0x6d, 0xfa, 0x5d, 0x00, 0x00,
   0x3e, 0xc2, 0x3b, 0x00, 0x0f, 0x78, 0x6d, 0xf9,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
