@@ -60,32 +60,32 @@ fn main() -> ! {
     _ = board.uart_daplink.write_str("Sniffer target: LED welcome\n\r");
     leds_welcome(&mut board.leds, &mut timer);
     
-    let clocks = board.CLOCK.constrain().enable_ext_hfosc();
+    // let clocks = board.CLOCK.constrain().enable_ext_hfosc();
     
-    _ = board.uart_daplink.write_str("Sniffer target: Initialising radio\n\r");
-    let radio = Radio::new(board.RADIO, &clocks);
-    radio
-    .set_tx_power(TxPower::Pos8dBm)
-    .set_mode(Mode::Nrf2Mbit) // All points that most HID devices use this rate
-    .set_frequency(Frequency::from_2400mhz_channel(TARGET_CHANNEL))
-    // .set_base_addresses(BaseAddresses::from_same_four_bytes([0xa0, 0xb1, 0xc2, 0xd3]))
-    // .set_prefixes([0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7])
-    // .set_rx_addresses(RX_ADDRESS_1)
-    .enable_power();
+    // _ = board.uart_daplink.write_str("Sniffer target: Initialising radio\n\r");
+    // let radio = Radio::new(board.RADIO, &clocks);
+    // radio
+    // .set_tx_power(TxPower::Pos8dBm)
+    // .set_mode(Mode::Nrf2Mbit) // All points that most HID devices use this rate
+    // .set_frequency(Frequency::from_2400mhz_channel(TARGET_CHANNEL))
+    // // .set_base_addresses(BaseAddresses::from_same_four_bytes([0xa0, 0xb1, 0xc2, 0xd3]))
+    // // .set_prefixes([0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7])
+    // // .set_rx_addresses(RX_ADDRESS_1)
+    // .enable_power();
 
-    let mut read_buffer = [0x00u8; 34];
-    let mut write_buffer = [0x00u8; 34];
+    // let mut read_buffer = [0x00u8; 34];
+    // let mut write_buffer = [0x00u8; 34];
 
-    _ = board.uart_daplink.write_str("Sniffer target: Initialising ESB\n\r");
-    // TODO EsbProtocol and buffers size must match
-    let mut esb = Esb::new(radio, EsbProtocol::fixed_payload_length(read_buffer.len() as u8), &mut read_buffer, &mut write_buffer);
-    esb.set_crc_16bits();
+    // _ = board.uart_daplink.write_str("Sniffer target: Initialising ESB\n\r");
+    // // TODO EsbProtocol and buffers size must match
+    // let mut esb = Esb::new(radio, EsbProtocol::fixed_payload_length(read_buffer.len() as u8), &mut read_buffer, &mut write_buffer);
+    // esb.set_crc_16bits();
     
-    _ = board.uart_daplink.write_str("Sniffer target: Setting Tx Config to default\n\r");
-    let tx_config = TxConfig::default();
+    // _ = board.uart_daplink.write_str("Sniffer target: Setting Tx Config to default\n\r");
+    // let tx_config = TxConfig::default();
 
-    _ = board.uart_daplink.write_fmt(format_args!("Sniffer target: Starting main loop. \
-                                                    \n\rWill send a PAIRING_RESPONSE packet in channel {} approximately every {}us\n\r",TARGET_CHANNEL,LED_INTERVAL));
+    // _ = board.uart_daplink.write_fmt(format_args!("Sniffer target: Starting main loop. \
+    //                                                 \n\rWill send a PAIRING_RESPONSE packet in channel {} approximately every {}us\n\r",TARGET_CHANNEL,LED_INTERVAL));
 
     board.leds.green.off();
     board.leds.blue.off();
