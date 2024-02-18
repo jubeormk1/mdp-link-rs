@@ -95,15 +95,15 @@ fn main() -> ! {
 
     timer.start(LED_INTERVAL);
     loop {
-        let buf = esb.get_tx_buffer();
-        buf.copy_from_slice(&PAIRING_RESPONSE);
+        // let buf = esb.get_tx_buffer();
+        // buf.copy_from_slice(&PAIRING_RESPONSE);
 
-        if let Err(error) = esb.start_tx(tx_config){
-            board.leds.red.on();
-            _ = board.uart_daplink.write_fmt(format_args!("Error: {:?}\n", error));
-        }else{
-            board.leds.red.off();
-        }
+        // if let Err(error) = esb.start_tx(tx_config){
+        //     board.leds.red.on();
+        //     _ = board.uart_daplink.write_fmt(format_args!("Error: {:?}\n", error));
+        // }else{
+        //     board.leds.red.off();
+        // }
         let loading = if tick {
             "0_0"
         }else {
