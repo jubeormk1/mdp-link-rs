@@ -50,7 +50,7 @@ fn main() -> ! {
 
     let mut board = Board::take().unwrap();
 
-    _ = board.uart_daplink.write_str("Initialising ...\n\r");
+    _ = board.uart_daplink.write_str("\n\n\n\n\rInitialising ...\n\r");
     
     
     let mut timer = board.TIMER0.constrain();
@@ -87,26 +87,26 @@ fn main() -> ! {
     board.leds.blue.off();
     board.leds.red.off();
     
-    _ = board.uart_daplink.write_str("Starting main loop...\n\r");
+    _ = board.uart_daplink.write_fmt(format_args!("Starting main loop... Trying to receive from freq 0 to {} with {} retries\n\r[",MAX_CHANNEL, RX_RETRIES));
     
     timer.start(LED_INTERVAL);
     loop {
         
-        _ = board.uart_daplink.write_fmt(format_args!("Starting ESB RX on channel {:3?}...\n\r", channel));
+        // _ = board.uart_daplink.write_fmt(format_args!("Starting ESB RX on channel {:3?}...\n\r", channel));
         if let Err(error) = esb.start_rx(rx_config) {
             board.leds.green.off();
             board.leds.blue.off();
             board.leds.red.on();
-            _ = board.uart_daplink.write_fmt(format_args!("---> Error: {:?}\n\r", error));
+            _ = board.uart_daplink.write_fmt(format_args!("\n\rError: {:?}\n\r", error));
         }
         else {
             
-            _ = board.uart_daplink.write_fmt(format_args!("---> Waiting for RX \n\r"));
+            _ = board.uart_daplink.write_fmt(format_args!("{} ",channel));
             if let Err(error) = block!(esb.wait_rx()) {
                 board.leds.green.off();
                 board.leds.blue.off();
                 board.leds.red.on();
-                _ = board.uart_daplink.write_fmt(format_args!("------> Error: {:?}\n", error));
+                _ = board.uart_daplink.write_fmt(format_args!("\n\r Error: {:?}\n", error));
             }
             else {
                 board.leds.red.off();
@@ -114,7 +114,7 @@ fn main() -> ! {
                 match esb.get_last_received_packet(){
                     Some(packet) => {
                         board.leds.blue.on();
-                        _ = board.uart_daplink.write_str("Packet Found! Will block here\n\r");
+                        // _ = board.uart_daplink.write_str("Packet Found! Will block here\n\r");
                         let buf = esb.get_rx_buffer();
                         print_packet(&packet, buf, &mut board.uart_daplink);
                         loop {
@@ -122,9 +122,10 @@ fn main() -> ! {
                         }
                     },
                     None => {
-                        _ = board.uart_daplink.write_fmt(format_args!("------> Packet reception retries excededed!\n\r"));
+                        // _ = board.uart_daplink.write_fmt(format_args!("------> Packet reception retries excededed!\n\r"));
                         
                         channel = if channel >= MAX_CHANNEL{
+                            _ = board.uart_daplink.write_fmt(format_args!("]\n\n\r["));
                             0
                         }else{
                             channel + 1
